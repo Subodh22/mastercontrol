@@ -41,7 +41,8 @@ async function fetchUsageCompletionsPage({ startTime, endTime, page }) {
   url.searchParams.set("start_time", String(startTime));
   url.searchParams.set("end_time", String(endTime));
   url.searchParams.set("bucket_width", "1d");
-  url.searchParams.set("limit", "180");
+  // For bucket_width=1d, OpenAI caps limit at 31.
+  url.searchParams.set("limit", "31");
   if (page) url.searchParams.set("page", page);
 
   const res = await fetch(url, {
@@ -89,41 +90,48 @@ async function upsertDay(userId, day, agg) {
 async function main() {
   const userId = await findUserIdByEmail(TARGET_EMAIL);
 
-  const endSec = Math.floor(Date.now() / 1000);
-  const startSec = endSec - DAYS * 24 * 60 * 60;
+  const nowSec = Math.floor(Date.now() / 1000);
+  const rangeStart = nowSec - DAYS * 24 * 60 * 60;
 
-  let page = null;
+  // The API limits bucket_width=1d to max 31 buckets per call.
+  const windowSec = 31 * 24 * 60 * 60;
+
   let sawAny = false;
 
-  while (true) {
-    const json = await fetchUsageCompletionsPage({ startTime: startSec, endTime: endSec, page });
-    const buckets = Array.isArray(json.data) ? json.data : [];
+  for (let start = rangeStart; start < nowSec; start += windowSec) {
+    const end = Math.min(start + windowSec, nowSec);
 
-    for (const b of buckets) {
-      sawAny = true;
-      const day = utcDay(b.start_time);
-      const results = Array.isArray(b.results) ? b.results : [];
+    let page = null;
+    while (true) {
+      const json = await fetchUsageCompletionsPage({ startTime: start, endTime: end, page });
+      const buckets = Array.isArray(json.data) ? json.data : [];
 
-      // If not grouped, results should have one record. If grouped, sum them.
-      const agg = results.reduce(
-        (acc, r) => {
-          acc.input_tokens += Number(r.input_tokens ?? 0);
-          acc.output_tokens += Number(r.output_tokens ?? 0);
-          acc.total_tokens += Number(r.input_tokens ?? 0) + Number(r.output_tokens ?? 0);
-          acc.num_model_requests += Number(r.num_model_requests ?? 0);
-          return acc;
-        },
-        { input_tokens: 0, output_tokens: 0, total_tokens: 0, num_model_requests: 0 }
-      );
+      for (const b of buckets) {
+        sawAny = true;
+        const day = utcDay(b.start_time);
+        const results = Array.isArray(b.results) ? b.results : [];
 
-      const action = await upsertDay(userId, day, agg);
-      console.log(
-        `openai_usage_daily ${day}: ${action} (in=${agg.input_tokens}, out=${agg.output_tokens}, req=${agg.num_model_requests})`
-      );
+        // If not grouped, results should have one record. If grouped, sum them.
+        const agg = results.reduce(
+          (acc, r) => {
+            acc.input_tokens += Number(r.input_tokens ?? 0);
+            acc.output_tokens += Number(r.output_tokens ?? 0);
+            acc.total_tokens += Number(r.input_tokens ?? 0) + Number(r.output_tokens ?? 0);
+            acc.num_model_requests += Number(r.num_model_requests ?? 0);
+            return acc;
+          },
+          { input_tokens: 0, output_tokens: 0, total_tokens: 0, num_model_requests: 0 }
+        );
+
+        const action = await upsertDay(userId, day, agg);
+        console.log(
+          `openai_usage_daily ${day}: ${action} (in=${agg.input_tokens}, out=${agg.output_tokens}, req=${agg.num_model_requests})`
+        );
+      }
+
+      if (json.has_more && json.next_page) page = json.next_page;
+      else break;
     }
-
-    if (json.has_more && json.next_page) page = json.next_page;
-    else break;
   }
 
   if (!sawAny) console.log("No usage buckets returned for this range.");
