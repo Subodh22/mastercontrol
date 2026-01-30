@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import OpenAIUsageCard from "./OpenAIUsageCard";
 import OpenAICostCard from "./OpenAICostCard";
+import OpenAICombinedTable from "./OpenAICombinedTable";
 
 export default async function UsagePage() {
   const supabase = await createClient();
@@ -55,30 +56,10 @@ export default async function UsagePage() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm">
-        <div className="grid grid-cols-5 gap-2 border-b border-zinc-100 bg-zinc-50 px-4 py-2 text-xs font-medium text-zinc-600">
-          <div>Date</div>
-          <div className="text-right">Input</div>
-          <div className="text-right">Output</div>
-          <div className="text-right">Total</div>
-          <div className="text-right">Cost (USD)</div>
-        </div>
-        <div className="divide-y divide-zinc-100">
-          {(data ?? []).map((r) => (
-            <div key={r.day} className="grid grid-cols-5 gap-2 px-4 py-2 text-sm">
-              <div className="text-zinc-900">{r.day}</div>
-              <div className="text-right text-zinc-700">{Intl.NumberFormat().format(Number(r.input_tokens ?? 0))}</div>
-              <div className="text-right text-zinc-700">{Intl.NumberFormat().format(Number(r.output_tokens ?? 0))}</div>
-              <div className="text-right font-medium text-zinc-900">{Intl.NumberFormat().format(Number(r.total_tokens ?? 0))}</div>
-              <div className="text-right text-zinc-700">${Number(r.cost_usd ?? 0).toFixed(4)}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <OpenAICombinedTable />
 
       <div className="text-xs text-zinc-500">
-        Note: this reflects Clawdbot session log usage fields. If you want official OpenAI billing usage, we can integrate the
-        OpenAI Usage API separately.
+        “Official OpenAI (daily)” is built from the OpenAI Usage API (tokens/requests) + OpenAI Costs API (spend) and joined by UTC day.
       </div>
     </main>
   );
