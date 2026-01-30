@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import OpenAICostCard from "./OpenAICostCard";
 
 export default async function UsagePage() {
   const supabase = await createClient();
@@ -36,7 +37,8 @@ export default async function UsagePage() {
         </Link>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-4">
+        <OpenAICostCard />
         <div className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
           <div className="text-xs text-zinc-500">Last 60 days cost</div>
           <div className="mt-1 text-2xl font-semibold">${totalCost.toFixed(2)}</div>
