@@ -31,6 +31,12 @@ function Sidebar() {
           Import
         </Link>
         <Link
+          href="/tasks"
+          className="block rounded-md px-2 py-2 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900"
+        >
+          Ops Board
+        </Link>
+        <Link
           href="/conversations?q="
           className="block rounded-md px-2 py-2 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900"
         >
