@@ -42,12 +42,12 @@ begin
     create or replace function public.set_updated_at()
     returns trigger
     language plpgsql
-    as $$
+    as $func$
     begin
       new.updated_at = now();
       return new;
     end;
-    $$;
+    $func$;
   end if;
 end $$;
 
