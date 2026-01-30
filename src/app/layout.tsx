@@ -37,6 +37,12 @@ function Sidebar() {
           Ops Board
         </Link>
         <Link
+          href="/usage"
+          className="block rounded-md px-2 py-2 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900"
+        >
+          Usage
+        </Link>
+        <Link
           href="/conversations?q="
           className="block rounded-md px-2 py-2 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900"
         >
