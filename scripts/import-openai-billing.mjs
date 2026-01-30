@@ -7,6 +7,9 @@ const TARGET_EMAIL = process.env.MASTERCONTROL_EMAIL;
 const TIMEZONE = process.env.MASTERCONTROL_TIMEZONE || "Australia/Melbourne";
 const OPENAI_ADMIN_KEY = process.env.OPENAI_ADMIN_KEY;
 
+// OpenAI Costs endpoint buckets are UTC-based. To match the OpenAI dashboard,
+// we store days in UTC.
+
 const DAYS = Number(process.env.OPENAI_BILLING_DAYS || 60);
 
 if (!SUPABASE_URL) throw new Error("Missing SUPABASE_URL");
@@ -18,18 +21,9 @@ const supabase = createClient(SUPABASE_URL, SERVICE_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
-function toAestDayFromUnixSeconds(sec) {
-  const dtf = new Intl.DateTimeFormat("en-CA", {
-    timeZone: TIMEZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  return dtf.format(new Date(sec * 1000));
-}
-
-function toISODate(d) {
-  return d.toISOString().slice(0, 10);
+function toUtcDayFromUnixSeconds(sec) {
+  // YYYY-MM-DD in UTC
+  return new Date(sec * 1000).toISOString().slice(0, 10);
 }
 
 async function findUserIdByEmail(email) {
@@ -114,7 +108,7 @@ async function main() {
 
     for (const b of buckets) {
       sawAny = true;
-      const day = toAestDayFromUnixSeconds(b.start_time);
+      const day = toUtcDayFromUnixSeconds(b.start_time);
       const results = Array.isArray(b.results) ? b.results : [];
       const amount = results.reduce((sum, r) => sum + Number(r?.amount?.value ?? 0), 0);
       const costUsd = Number(amount.toFixed(6));
