@@ -1,6 +1,17 @@
 -- Tasks (Kanban) for MasterControl
 
-create type if not exists public.task_status as enum ('backlog','todo','doing','blocked','done');
+-- Postgres does not support CREATE TYPE IF NOT EXISTS for enums on all versions,
+-- so we do a safe DO-block.
+do $$
+begin
+  if not exists (
+    select 1 from pg_type t
+    join pg_namespace n on n.oid = t.typnamespace
+    where t.typname = 'task_status' and n.nspname = 'public'
+  ) then
+    create type public.task_status as enum ('backlog','todo','doing','blocked','done');
+  end if;
+end $$;
 
 create table if not exists public.tasks (
   id uuid primary key default gen_random_uuid(),
