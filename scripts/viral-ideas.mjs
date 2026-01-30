@@ -116,6 +116,7 @@ async function sourceHackerNews() {
       url: h.url || `https://news.ycombinator.com/item?id=${h.objectID}`,
       source: "Hacker News",
       score: h.points || 0,
+      comments: h.num_comments || 0,
     }))
     .filter((x) => isAiRelated(x.topic));
 }
@@ -251,6 +252,11 @@ function formatDaily(items, day) {
 
   items.forEach((it, i) => {
     lines.push(`${i + 1}) ${it.topic}`);
+    if (it.source === "Hacker News") {
+      lines.push(`   Score: ${it.score ?? 0} points · ${it.comments ?? 0} comments`);
+    } else if (typeof it.score === "number" && it.score > 0) {
+      lines.push(`   Score: ${it.score}`);
+    }
     if (it.hook) lines.push(`   Hook: ${it.hook}`);
     if (it.why_now) lines.push(`   Why now: ${it.why_now}`);
     if (Array.isArray(it.angles) && it.angles.length) {
