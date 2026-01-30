@@ -15,7 +15,7 @@ export default function DeleteButton({ id }: { id: string }) {
         });
       }}
       disabled={pending}
-      className="rounded-md border border-zinc-800 bg-zinc-900/40 px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-900 disabled:opacity-50"
+      className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs text-zinc-600 shadow-sm hover:bg-zinc-50 disabled:opacity-50"
     >
       {pending ? "Deleting…" : "Delete"}
     </button>

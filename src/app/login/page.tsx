@@ -45,56 +45,51 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="space-y-6">
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
-        <h2 className="text-lg font-semibold">Sign in</h2>
-        <p className="mt-1 text-sm text-zinc-400">Use Google (recommended) or email magic link.</p>
+    <main className="mx-auto max-w-md space-y-4">
+      <div>
+        <h2 className="text-2xl font-semibold tracking-tight">Sign in</h2>
+        <p className="mt-1 text-sm text-zinc-600">Use Google to access your vault.</p>
+      </div>
 
-        <div className="mt-6 space-y-3">
+      <div className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+        <div className="space-y-3">
           <button
             onClick={signInWithGoogle}
             disabled={status.type === "loading"}
-            className="w-full rounded-md bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-950 disabled:opacity-50"
+            className="w-full rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-zinc-800 disabled:opacity-50"
           >
             Continue with Google
           </button>
 
-          <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-zinc-800" />
-            <div className="text-xs text-zinc-500">or</div>
-            <div className="h-px flex-1 bg-zinc-800" />
-          </div>
+          <details className="rounded-md border border-zinc-200 bg-zinc-50 p-3">
+            <summary className="cursor-pointer text-sm text-zinc-700">Use email magic link instead</summary>
+            <form className="mt-3 space-y-3" onSubmit={onSubmit}>
+              <label className="block text-sm font-medium text-zinc-800">Email</label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@domain.com"
+                className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
 
-          <form className="space-y-3" onSubmit={onSubmit}>
-            <label className="block text-sm text-zinc-300">Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@domain.com"
-              className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-zinc-50 placeholder:text-zinc-600"
-            />
+              <button
+                disabled={status.type === "loading"}
+                className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50 disabled:opacity-50"
+              >
+                {status.type === "loading" ? "Sending…" : "Send magic link"}
+              </button>
 
-            <button
-              disabled={status.type === "loading"}
-              className="w-full rounded-md border border-zinc-800 bg-zinc-900/40 px-3 py-2 text-sm font-medium text-zinc-200 hover:bg-zinc-900 disabled:opacity-50"
-            >
-              {status.type === "loading" ? "Sending…" : "Send magic link"}
-            </button>
+              {status.type === "sent" && <p className="text-sm text-emerald-600">Check your email for the sign-in link.</p>}
+            </form>
+          </details>
 
-            {status.type === "sent" && (
-              <p className="text-sm text-emerald-400">Check your email for the sign-in link.</p>
-            )}
-            {status.type === "error" && <p className="text-sm text-red-400">{status.message}</p>}
-          </form>
+          {status.type === "error" && <p className="text-sm text-red-600">{status.message}</p>}
         </div>
       </div>
 
-      <div className="text-xs text-zinc-500">
-        Security note: anyone with your app URL can see the login screen, but only authenticated users can access
-        conversations.
-      </div>
+      <div className="text-xs text-zinc-500">Only authenticated users can access conversations.</div>
     </main>
   );
 }
